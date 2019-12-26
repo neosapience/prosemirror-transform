@@ -4,6 +4,56 @@ import {Transform} from "./transform"
 import {AddMarkStep, RemoveMarkStep} from "./mark_step"
 import {ReplaceStep} from "./replace_step"
 
+Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) {
+  let removed = [], added = [], removing = null, adding = null
+
+  this.doc.nodesBetween(from, to, (node, pos, parent) => {
+    if (!node.isInline || !node.type.allowsMarkType(newMark.type)) return
+    let marks = node.marks
+
+    if (!newMark.isInSet(marks) && parent.type.allowsMarkType(newMark.type)) {
+      let start = Math.max(pos, from), end = Math.min(pos + node.nodeSize, to)
+      let newSet = newMark.addToSet(marks)
+      let queryAttrs
+
+      for (let i = 0; i < marks.length; i++) {
+        if (!marks[i].isInSet(newSet)) {
+          if (removing && removing.to == start && removing.mark.eq(marks[i]))
+            removing.to = end
+          else
+            removed.push(removing = new RemoveMarkStep(start, end, marks[i]))
+        }
+        if (marks[i].type.name === 'query') {
+          queryAttrs = marks[i].attrs
+        }
+      }
+      
+      for (const attrKey in updateAttrs) {
+        if (attrKey !== 'id') {
+          let updateAttr = updateAttrs[attrKey]
+          let queryAttr = queryAttrs[attrKey]
+          if (queryAttr === updateAttr) {
+            delete queryAttrs[attrKey]
+          } else {
+            queryAttrs[attrKey] = updateAttr
+          }
+        }
+      }
+      newMark = newMark.type.create(queryAttrs)
+
+      if (adding && adding.to == start)
+        adding.to = end
+      else
+        added.push(adding = new AddMarkStep(start, end, newMark))
+    }
+  })
+
+  removed.forEach(s => this.step(s))
+  added.forEach(s => this.step(s))
+  return this
+}
+
+
 // :: (number, number, Mark) → this
 // Add the given mark to the inline content between `from` and `to`.
 Transform.prototype.addMark = function(from, to, mark) {
