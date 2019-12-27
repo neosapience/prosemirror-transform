@@ -30,13 +30,7 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
       
       for (const attrKey in updateAttrs) {
         if (attrKey !== 'id') {
-          let updateAttr = updateAttrs[attrKey]
-          let queryAttr = queryAttrs[attrKey]
-          if (queryAttr === updateAttr) {
-            delete queryAttrs[attrKey]
-          } else {
-            queryAttrs[attrKey] = updateAttr
-          }
+          queryAttrs[attrKey] = updateAttrs[attrKey]
         }
       }
       newMark = newMark.type.create(queryAttrs)
