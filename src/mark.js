@@ -24,7 +24,7 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
             removed.push(removing = new RemoveMarkStep(start, end, marks[i]))
         }
         if (marks[i].type.name === 'query') {
-          queryAttrs = marks[i].attrs
+          queryAttrs = Object.assign({}, marks[i].attrs)
         }
       }
       
