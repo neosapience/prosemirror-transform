@@ -440,7 +440,7 @@ describe("Transform", () => {
     it("will match open list items", () =>
        repl(doc(ol(li(p("one<a>")), li(p("three")))),
             doc(ol(li(p("<a>half")), li(p("two")), "<b>")),
-            doc(ol(li(p("onehalf")), li(p("two")), li(p()), li(p("three"))))))
+            doc(ol(li(p("onehalf")), li(p("two")), li(p("three"))))))
 
     it("merges blocks across deleted content", () =>
        repl(doc(p("a<a>"), p("b"), p("<b>c")),
@@ -542,10 +542,10 @@ describe("Transform", () => {
             doc(p("<a>hi<b>")),
             doc(blockquote(p("hix")))))
 
-    it("preserves an empty parent to the right", () =>
+    it("drops an empty parent to the right", () =>
        repl(doc(p("x<a>hi"), blockquote(p("yy"), "<b>"), p("c")),
             doc(p("<a>hi<b>")),
-            doc(p("xhi"), blockquote(p()), p("c"))))
+            doc(p("xhi"), p("c"))))
 
     it("drops an empty node at the start of the slice", () =>
        repl(doc(p("<a>x")),
@@ -647,6 +647,69 @@ describe("Transform", () => {
       let tr = new Transform(hb.doc(hb.h("Head"), hb.b(hb.p("One"))))
       tr.replace(0, tr.doc.content.size, tr.doc.slice(6, tr.doc.content.size))
       ist(tr.doc, hb.doc(hb.h(), hb.b(hb.p("One"))), eq)
+    })
+
+    it("doesn't fail when moving text would solve an unsatisfied content constraint", () => {
+      let s = new Schema({
+        nodes: schema.spec.nodes.append({
+          title: {content: "text*"},
+          doc: {content: "title? block*"}
+        })
+      })
+      let tr = new Transform(s.node("doc", null, s.node("title", null, s.text("hi"))))
+      tr.replace(1, 1, s.node("bullet_list", null, [
+        s.node("list_item", null, s.node("paragraph", null, s.text("one"))),
+        s.node("list_item", null, s.node("paragraph", null, s.text("two")))
+      ]).slice(2, 12))
+      ist(tr.steps.length, 0, ">")
+    })
+
+    it("doesn't fail when pasting a half-open slice with a title and a code block into an empty title", () => {
+      let s = new Schema({
+        nodes: schema.spec.nodes.append({
+          title: {content: "text*"},
+          doc: {content: "title? block*"}
+        })
+      })
+      let tr = new Transform(s.node("doc", null, [s.node("title", null, [])]))
+      tr.replace(1, 1, s.node("doc", null, [
+        s.node("title", null, s.text("title")),
+        s.node("code_block", null, s.text("two")),
+      ]).slice(1))
+      ist(tr.steps.length, 0, ">")
+    })
+
+    it("doesn't fail when pasting a half-open slice with a heading and a code block into an empty title", () => {
+      let s = new Schema({
+        nodes: schema.spec.nodes.append({
+          title: {content: "text*"},
+          doc: {content: "title? block*"}
+        })
+      })
+      let tr = new Transform(s.node("doc", null, [s.node("title")]))
+      tr.replace(1, 1, s.node("doc", null, [
+        s.node("heading", {level: 1}, [s.text("heading")]),
+        s.node("code_block", null, [s.text("code")]),
+      ]).slice(1))
+      ist(tr.steps.length, 0, ">")
+    })
+
+    it("can handle replacing in nodes with fixed content", () => {
+      let s = new Schema({
+        nodes: {
+          doc: {content: "block+"},
+          a: {content: "inline*"},
+          b: {content: "inline*"},
+          block: {content: "a b"},
+          text: {group: "inline"}
+        }
+      })
+
+      let doc = s.node("doc", null, [
+        s.node("block", null, [s.node("a", null, [s.text("aa")]), s.node("b", null, [s.text("bb")])])
+      ])
+      let from = 3, to = doc.content.size
+      ist(new Transform(doc).replace(from, to, doc.slice(from, to)).doc, doc, eq)
     })
   })
 

@@ -1,3 +1,27 @@
+## 1.2.7 (2020-07-09)
+
+### Bug fixes
+
+Fix an issue where in some cases replace fitting would insert an additional bogus node when fitting content into nodes with strict content restrictions.
+
+## 1.2.6 (2020-06-10)
+
+### Bug fixes
+
+Fix an issue where creating a replace step would sometimes fail due to unmatchable close tokens after the replaced range.
+
+## 1.2.5 (2020-04-15)
+
+### Bug fixes
+
+Rewrite the slice-fitting code used by `replaceStep` to handle a few more corner cases.
+
+## 1.2.4 (2020-03-10)
+
+### Bug fixes
+
+Fix `joinPoint` to return check whether the parent node allows a given join.
+
 ## 1.2.3 (2019-12-03)
 
 ### Bug fixes
