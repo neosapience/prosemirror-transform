@@ -10,12 +10,10 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
   this.doc.nodesBetween(from, to, (node, pos, parent) => {
     if (!node.isInline || !node.type.allowsMarkType(newMark.type)) return
     let marks = node.marks
-
     if (!newMark.isInSet(marks) && parent.type.allowsMarkType(newMark.type)) {
       let start = Math.max(pos, from), end = Math.min(pos + node.nodeSize, to)
       let newSet = newMark.addToSet(marks)
       let queryAttrs
-
       for (let i = 0; i < marks.length; i++) {
         if (!marks[i].isInSet(newSet)) {
           if (removing && removing.to == start && removing.mark.eq(marks[i]))
@@ -30,7 +28,9 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
       
       for (const attrKey in updateAttrs) {
         if (attrKey !== 'id') {
-          queryAttrs[attrKey] = updateAttrs[attrKey]
+          if (!(attrKey === 'speed' && parent.attrs['disable-speed'])) {
+            queryAttrs[attrKey] = updateAttrs[attrKey] 
+          }
         }
       }
       newMark = newMark.type.create(queryAttrs)
