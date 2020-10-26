@@ -6,7 +6,6 @@ import {ReplaceStep} from "./replace_step"
 
 Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) {
   let removed = [], added = [], removing = null, adding = null
-
   this.doc.nodesBetween(from, to, (node, pos, parent) => {
     if (!node.isInline || !node.type.allowsMarkType(newMark.type)) return
     let marks = node.marks
@@ -28,7 +27,9 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
       
       for (const attrKey in updateAttrs) {
         if (attrKey !== 'id') {
-          if (!(attrKey === 'speed' && parent.attrs['disable-speed'])) {
+          if (attrKey === 'speed' && parent.attrs['disable-speed']) {
+            queryAttrs[attrKey] = 1
+          } else {
             queryAttrs[attrKey] = updateAttrs[attrKey] 
           }
         }
