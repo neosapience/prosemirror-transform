@@ -29,6 +29,8 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
         if (attrKey !== 'id') {
           if (attrKey === 'speed' && parent.attrs['disable-speed']) {
             queryAttrs[attrKey] = 1
+          } else if (attrKey === 'style' && parent.attrs['disable-style']) {
+            queryAttrs[attrKey] = 0
           } else {
             queryAttrs[attrKey] = updateAttrs[attrKey] 
           }
