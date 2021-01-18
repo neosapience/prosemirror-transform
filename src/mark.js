@@ -31,6 +31,10 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
             queryAttrs[attrKey] = 1
           } else if (attrKey === 'style' && parent.attrs['disable-style']) {
             queryAttrs[attrKey] = 0
+          } else if (attrKey === 'style' && parent.attrs['actor-version'] === '3.0.0' && !isNaN(parseInt(updateAttrs[attrKey], 10))) {
+            queryAttrs[attrKey] = queryAttrs[attrKey]
+          } else if (attrKey === 'style' && parent.attrs['actor-version'] !== '3.0.0' && isNaN(parseInt(updateAttrs[attrKey], 10))) {
+            queryAttrs[attrKey] = queryAttrs[attrKey]
           } else {
             queryAttrs[attrKey] = updateAttrs[attrKey] 
           }
