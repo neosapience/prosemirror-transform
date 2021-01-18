@@ -4,6 +4,15 @@ import {Transform} from "./transform"
 import {AddMarkStep, RemoveMarkStep} from "./mark_step"
 import {ReplaceStep} from "./replace_step"
 
+function isSupportVersion(version, value) {
+  if (version === '3.0.0' && (value === 0 || isNaN(parseInt(value, 10)))) {
+    return true
+  } else if (version !== '3.0.0' && !isNaN(parseInt(value, 10))) {
+    return true
+  }
+  return false
+}
+
 Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) {
   let removed = [], added = [], removing = null, adding = null
   this.doc.nodesBetween(from, to, (node, pos, parent) => {
@@ -31,9 +40,7 @@ Transform.prototype.updateQueryAttrs = function(from, to, newMark, updateAttrs) 
             queryAttrs[attrKey] = 1
           } else if (attrKey === 'style' && parent.attrs['disable-style']) {
             queryAttrs[attrKey] = 0
-          } else if (attrKey === 'style' && parent.attrs['actor-version'] === '3.0.0' && !isNaN(parseInt(updateAttrs[attrKey], 10))) {
-            queryAttrs[attrKey] = queryAttrs[attrKey]
-          } else if (attrKey === 'style' && parent.attrs['actor-version'] !== '3.0.0' && isNaN(parseInt(updateAttrs[attrKey], 10))) {
+          } else if (attrKey === 'style' && !isSupportVersion(parent.attrs['actor-version'], updateAttrs[attrKey])) {
             queryAttrs[attrKey] = queryAttrs[attrKey]
           } else {
             queryAttrs[attrKey] = updateAttrs[attrKey] 
